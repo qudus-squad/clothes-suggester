@@ -1,4 +1,3 @@
 package domain.repository
 
-interface WeatherRepository {
-}
+interface WeatherRepository {}

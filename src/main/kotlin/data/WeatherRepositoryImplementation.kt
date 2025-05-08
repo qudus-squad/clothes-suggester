@@ -5,5 +5,4 @@ import domain.repository.WeatherRepository
 
 class WeatherRepositoryImplementation(
     private val weatherApi: WeatherApi
-): WeatherRepository {
-}
+) : WeatherRepository {}
