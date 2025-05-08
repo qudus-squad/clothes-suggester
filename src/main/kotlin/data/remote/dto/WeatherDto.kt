@@ -3,7 +3,9 @@ package data.remote.dto
 import domain.model.DayCityWeather
 import domain.model.WeatherType.Companion.fromWMO
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class WeatherDto(
     val id: Int,
     val main: Main,

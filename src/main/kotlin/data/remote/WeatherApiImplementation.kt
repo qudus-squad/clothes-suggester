@@ -1,22 +1,40 @@
 package data.remote
 
 import data.remote.dto.WeatherDto
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
-import io.ktor.client.statement.bodyAsText
-import kotlinx.serialization.json.Json.Default.decodeFromString
+import domain.model.*
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.serialization.json.Json
 
 class KtorWeatherApiImplementation(private val client: HttpClient) : WeatherApi {
+    private val json = Json { ignoreUnknownKeys = true }
     override suspend fun getCurrentWeather(city: String): Result<WeatherDto> {
         val apiKey = System.getenv(API_KEY)
         return try {
-            val response: String = client.get(URL) {
+            val response = client.get(URL) {
                 parameter(CITY_NAME_QUERY, city)
                 parameter(API_KEY_QUERY, apiKey)
-            }.bodyAsText()
-            val weatherDto = decodeFromString<WeatherDto>(response)
-            Result.success(weatherDto)
+            }
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    val weatherDto = json.decodeFromString<WeatherDto>(response.bodyAsText())
+                    Result.success(weatherDto)
+                }
+
+                HttpStatusCode.BadRequest -> Result.failure(NetworkException())
+                HttpStatusCode.Unauthorized -> Result.failure(InvalidApiKeyException())
+                HttpStatusCode.NotFound -> Result.failure(WeatherNotFondException())
+                else -> {
+                    when (response.status.value) {
+                        in 400..499 -> Result.failure(ClientErrorException())
+                        in 500..599 -> Result.failure(ServerErrorException())
+                        else -> Result.failure(Exception("$UNEXPECTED_ERROR ${response.status.value}"))
+                    }
+                }
+            }
+
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -27,5 +45,6 @@ class KtorWeatherApiImplementation(private val client: HttpClient) : WeatherApi 
         const val CITY_NAME_QUERY = "q"
         const val API_KEY_QUERY = "appid"
         const val API_KEY = "API_KEY"
+        const val UNEXPECTED_ERROR = "Unexpected HTTP error:"
     }
 }
