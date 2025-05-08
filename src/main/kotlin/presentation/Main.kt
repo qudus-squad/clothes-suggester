@@ -2,7 +2,7 @@ package presentation
 
 import data.di.dataModule
 import domain.di.domainModule
-import domain.repository.WeatherRepository
+import domain.use_cases.GetClothesSuggestionUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
@@ -12,16 +12,19 @@ fun main() {
     startKoin {
         modules(dataModule, domainModule)
     }
-    val repository: WeatherRepository = getKoin().get()
+    val getClothesSuggestionUseCase: GetClothesSuggestionUseCase = getKoin().get()
+    print("Enter your City Name: ")
+    val cityName = readln()
     runBlocking {
+
         val deferred = async {
-            repository.getCurrentWeather("cairo")
+            getClothesSuggestionUseCase.getClothesSuggestion(cityName)
         }
 
-        val weather = deferred.await()
+        val suggestion = deferred.await()
+        if (suggestion != null) {
+            println(suggestion)
+        }
 
-        print(weather.temp)
     }
-
-
 }
