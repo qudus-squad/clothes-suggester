@@ -7,6 +7,9 @@ class GetClothesSuggestionUseCase(
     private val convertKelvinToCelsiusUseCase: ConvertKelvinToCelsiusUseCase,
     private val validateCityDataUseCase: ValidateCityDataUseCase
 ) {
+    suspend fun getClothesSuggestion(cityName: String): String? {
+        return ""
+    }
 
     companion object {
         const val WEATHER_SUGGESTION_HEADER = "Weather-based clothing suggestion for %s:\n"
@@ -24,5 +27,4 @@ class GetClothesSuggestionUseCase(
         const val HIGH_VISIBILITY_CLOTHING = "- High-visibility clothing for safety\n"
         const val NIGHT_VISIBILITY_CLOTHING = "- Consider reflective or light-colored clothing for visibility\n"
     }
-
 }

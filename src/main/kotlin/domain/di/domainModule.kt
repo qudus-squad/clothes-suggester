@@ -7,7 +7,7 @@ import org.koin.dsl.module
 
 val domainModule = module {
     single { ConvertKelvinToCelsiusUseCase() }
-    single { { ValidateCityDataUseCase() } }
+    single { ValidateCityDataUseCase() }
     single {
         GetClothesSuggestionUseCase(
             get(),
