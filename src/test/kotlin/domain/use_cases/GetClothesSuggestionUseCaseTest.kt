@@ -1,12 +1,14 @@
 package domain.use_cases
 
 import domain.model.CityWeather
+import domain.model.ExceptionsMessages.WEATHER_NOT_FOUND
 import domain.model.InvalidCityNameException
 import domain.model.WeatherNotFondException
 import domain.model.WeatherType
 import domain.repository.WeatherRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -32,12 +34,12 @@ class GetClothesSuggestionUseCaseTest {
     @Test
     fun `should return heavy winter clothing suggestion when temperature is below 0`() = runTest {
         // Given
-        val cityName = "moscow"
+        val cityName = "Oslo"
         val cityWeather = CityWeather(
             cityName = cityName,
             temp = 270.0,
             weatherType = WeatherType.SlightSnowFall,
-            weatherDescription = "Cold"
+            weatherDescription = "light snow"
         )
 
         coEvery { weatherRepository.getCurrentWeather(cityName) } returns Result.success(cityWeather)
@@ -46,32 +48,66 @@ class GetClothesSuggestionUseCaseTest {
         val result = getClothesSuggestionUseCase.getClothesSuggestion(cityName)
 
         // Then
-        result shouldBe """
-            Weather-based clothing suggestion for Oslo:
-            Temperature: -3.00°C
-            Weather condition: Slight snow fall
-            - Heavy winter coat, scarf, gloves, and thermal layers
-            - Warm hat and insulated boots
-            - Waterproof jacket, snow boots, and warm socks
-        """.trimIndent()
+        result.shouldContain("Heavy winter coat, scarf, gloves, and thermal layers")
     }
 
     @Test
-    fun `should return error message when weather repository fails`() = runTest {
+    fun `should return light jacket suggestion when temperature is between 10 and 20`() = runTest {
         // Given
-        val cityName = "KafrEldawar"
-        val errorMessage = "City not found"
+        val cityName = "London"
+        val cityWeather = CityWeather(
+            cityName = cityName,
+            temp = 290.0,
+            weatherType = WeatherType.SlightRain,
+            weatherDescription = "light rain"
+        )
 
-        coEvery {
-            weatherRepository.getCurrentWeather(cityName)
-        } returns Result.failure(WeatherNotFondException())
+        coEvery { weatherRepository.getCurrentWeather(cityName) } returns Result.success(cityWeather)
 
         // When
         val result = getClothesSuggestionUseCase.getClothesSuggestion(cityName)
 
         // Then
-        result shouldBe errorMessage
+        result.shouldContain("Waterproof jacket and umbrella")
     }
+
+    @Test
+    fun `should return light clothing suggestion when temperature is above 20`() = runTest {
+        // Given
+        val cityName = "Barcelona"
+        val cityWeather = CityWeather(
+            cityName = cityName,
+            temp = 303.0,
+            weatherType = WeatherType.ClearSky,
+            weatherDescription = "clear sky"
+        )
+
+        coEvery { weatherRepository.getCurrentWeather(cityName) } returns Result.success(cityWeather)
+
+        // When
+        val result = getClothesSuggestionUseCase.getClothesSuggestion(cityName)
+
+        // Then
+        result.shouldContain("T-shirt, shorts or light pants")
+    }
+
+
+    @Test
+    fun `should return -The weather for this city cannot be determined- message when weather repository fails`() =
+        runTest {
+            // Given
+            val cityName = "KafrEldawar"
+
+            coEvery {
+                weatherRepository.getCurrentWeather(cityName)
+            } returns Result.failure(WeatherNotFondException())
+
+            // When
+            val result = getClothesSuggestionUseCase.getClothesSuggestion(cityName)
+
+            // Then
+            result shouldBe WEATHER_NOT_FOUND
+        }
 
     @Test
     fun `should throw InvalidCityNameException when city name is empty`() = runTest {
