@@ -3,12 +3,11 @@ package domain.use_cases
 import domain.model.InvalidCityNameException
 
 class ValidateCityDataUseCase {
-  
-    fun validateCityData(cityName: String): Boolean {
-        if (!cityName.isValidCityName()) {
+
+    fun validateCityData(cityName: String) {
+        if (!isValidCityName(cityName)) {
             throw InvalidCityNameException()
         }
-        return true
     }
 
     private fun isValidCityName(cityName: String): Boolean {

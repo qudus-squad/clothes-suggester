@@ -1,5 +1,8 @@
 package domain.use_cases
 
+import domain.model.CityWeather
+import domain.model.InvalidCityNameException
+import domain.model.WeatherType
 import domain.repository.WeatherRepository
 
 class GetClothesSuggestionUseCase(
@@ -7,11 +10,79 @@ class GetClothesSuggestionUseCase(
     private val convertKelvinToCelsiusUseCase: ConvertKelvinToCelsiusUseCase,
     private val validateCityDataUseCase: ValidateCityDataUseCase
 ) {
-    suspend fun getClothesSuggestion(cityName: String): String? {
-        return ""
+    lateinit var cityWeather: CityWeather
+    suspend fun getClothesSuggestion(cityName: String): String {
+        return try {
+            validateCityDataUseCase.validateCityData(cityName)
+            val result = weatherRepository.getCurrentWeather(cityName)
+            result.fold(
+                onSuccess = { cityWeather = it },
+                onFailure = {
+                    return it.message ?: UNKNOWN_ERROR_CHECK_YOUR_INTERNET
+                }
+            )
+            val temperature = getCelsiusTemperature(cityWeather.temp)
+
+            val stringBuilder = StringBuilder()
+            stringBuilder.append(String.format(WEATHER_SUGGESTION_HEADER, cityName))
+            stringBuilder.append(String.format(TEMPERATURE_INFO, temperature))
+            stringBuilder.append(String.format(WEATHER_CONDITION, cityWeather.weatherType.weatherDesc))
+
+            when {
+                temperature < 0 -> {
+                    stringBuilder.append(HEAVY_WINTER_CLOTHING)
+                    stringBuilder.append(WARM_HAT_AND_BOOTS)
+                }
+
+                temperature in 0.0..10.0 -> {
+                    stringBuilder.append(WARM_JACKET_CLOTHING)
+                    stringBuilder.append(HAT_AND_GLOVES_OPTION)
+                }
+
+                temperature in 10.1..20.0 -> {
+                    stringBuilder.append(LIGHT_JACKET_CLOTHING)
+                }
+
+                temperature > 20 -> {
+                    stringBuilder.append(LIGHT_CLOTHING)
+                    stringBuilder.append(SUN_PROTECTION)
+                }
+            }
+
+            when (cityWeather.weatherType) {
+                WeatherType.SlightRain, WeatherType.LightDrizzle, WeatherType.ModerateThunderstorm -> {
+                    stringBuilder.append(WATERPROOF_CLOTHING)
+                }
+
+                WeatherType.SlightSnowFall -> {
+                    stringBuilder.append(SNOW_CLOTHING)
+                }
+
+                WeatherType.Foggy -> {
+                    stringBuilder.append(HIGH_VISIBILITY_CLOTHING)
+                }
+
+                else -> {}
+            }
+
+            if (cityWeather.weatherType == WeatherType.ClearSky) {
+                stringBuilder.append(NIGHT_VISIBILITY_CLOTHING)
+            }
+
+            stringBuilder.toString()
+        } catch (e: InvalidCityNameException) {
+            e.message ?: UNKNOWN_ERROR_CHECK_YOUR_INTERNET
+        } catch (e: Exception) {
+            e.message ?: UNKNOWN_ERROR_CHECK_YOUR_INTERNET
+        }
+    }
+
+    private fun getCelsiusTemperature(kelvinTemperature: Double): Double {
+        return convertKelvinToCelsiusUseCase.kelvinToCelsius(kelvinTemperature)
     }
 
     companion object {
+        const val UNKNOWN_ERROR_CHECK_YOUR_INTERNET = "Unknow error has occurred, check your internet connection "
         const val WEATHER_SUGGESTION_HEADER = "Weather-based clothing suggestion for %s:\n"
         const val TEMPERATURE_INFO = "Temperature: %.2f°C\n"
         const val WEATHER_CONDITION = "Weather condition: %s\n"
