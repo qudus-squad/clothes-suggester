@@ -12,8 +12,7 @@ class NetworkException(message: String = NETWORK_ERROR) : Exception(message)
 class ClientErrorException(message: String = CLIENT_ERROR) : Exception(message)
 class InvalidApiKeyException(message: String = INVALID_API_KEY) : Exception(message)
 class ServerErrorException(message: String = SERVER_ERROR) : Exception(message)
-open class InvalidCityDataException(message: String) : Exception(message)
-class InvalidCityNameException(message: String = INVALID_CITY_NAME) : InvalidCityDataException(message)
+class InvalidCityNameException(message: String = INVALID_CITY_NAME) : Exception(message)
 
 object ExceptionsMessages {
     const val WEATHER_NOT_FOUND =
