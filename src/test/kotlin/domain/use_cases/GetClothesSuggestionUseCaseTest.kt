@@ -2,11 +2,9 @@ package domain.use_cases
 
 import domain.model.CityWeather
 import domain.model.ExceptionsMessages.WEATHER_NOT_FOUND
-import domain.model.InvalidCityNameException
 import domain.model.WeatherNotFondException
 import domain.model.WeatherType
 import domain.repository.WeatherRepository
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
@@ -110,35 +108,44 @@ class GetClothesSuggestionUseCaseTest {
         }
 
     @Test
-    fun `should throw InvalidCityNameException when city name is empty`() = runTest {
+    fun `should throw return City name is not valid when city name is empty`() = runTest {
         // Given
         val invalidCityName = ""
 
-        // When && Then
-        shouldThrow<InvalidCityNameException> {
-            getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
-        }
+        // When
+        val result = getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
+
+        // Then
+        result shouldBe INVALID_CITY_NAME
     }
 
     @Test
-    fun `should throw InvalidCityNameException when city name is blank`() = runTest {
+    fun `should throw return City name is not valid when city name is blank`() = runTest {
         // Given
         val invalidCityName = " "
 
-        // When && Then
-        shouldThrow<InvalidCityNameException> {
-            getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
-        }
+        // When
+        val result = getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
+
+        // Then
+        result shouldBe INVALID_CITY_NAME
+
     }
 
     @Test
-    fun `should throw InvalidCityNameException when city name has not letter char`() = runTest {
+    fun `should return City name is not valid when city name has not letter char`() = runTest {
         // Given
         val invalidCityName = "123Helwan"
 
-        // When && Then
-        shouldThrow<InvalidCityNameException> {
-            getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
-        }
+        // When
+        val result = getClothesSuggestionUseCase.getClothesSuggestion(invalidCityName)
+
+        // Then
+        result shouldBe INVALID_CITY_NAME
+    }
+
+    companion object {
+        const val INVALID_CITY_NAME = "City name is not valid"
+
     }
 }
