@@ -1,78 +1,12 @@
 package domain.use_cases
 
-import domain.model.CityWeather
-import domain.model.WeatherType
 import domain.repository.WeatherRepository
 
 class GetClothesSuggestionUseCase(
     private val weatherRepository: WeatherRepository,
-    private val convertKelvinToCelsiusUseCase: ConvertKelvinToCelsiusUseCase
+    private val convertKelvinToCelsiusUseCase: ConvertKelvinToCelsiusUseCase,
+    private val validateCityDataUseCase: ValidateCityDataUseCase
 ) {
-    lateinit var cityWeather: CityWeather
-    suspend fun getClothesSuggestion(cityName: String): String? {
-        val result = weatherRepository.getCurrentWeather(cityName)
-        result.fold(
-            onSuccess = { cityWeather = it },
-            onFailure = {
-                return it.message
-            }
-        )
-        val temperature = getCelsiusTemperature(cityWeather.temp)
-
-        val stringBuilder = StringBuilder()
-        stringBuilder.append(String.format(WEATHER_SUGGESTION_HEADER, cityName))
-        stringBuilder.append(String.format(TEMPERATURE_INFO, temperature))
-        stringBuilder.append(String.format(WEATHER_CONDITION, cityWeather.weatherType.weatherDesc))
-
-        when {
-            temperature < 0 -> {
-                stringBuilder.append(HEAVY_WINTER_CLOTHING)
-                stringBuilder.append(WARM_HAT_AND_BOOTS)
-            }
-
-            temperature in 0.0..10.0 -> {
-                stringBuilder.append(WARM_JACKET_CLOTHING)
-                stringBuilder.append(HAT_AND_GLOVES_OPTION)
-            }
-
-            temperature in 10.1..20.0 -> {
-                stringBuilder.append(LIGHT_JACKET_CLOTHING)
-            }
-
-            temperature > 20 -> {
-                stringBuilder.append(LIGHT_CLOTHING)
-                stringBuilder.append(SUN_PROTECTION)
-            }
-        }
-
-        when (cityWeather.weatherType) {
-            WeatherType.SlightRain, WeatherType.LightDrizzle, WeatherType.ModerateThunderstorm -> {
-                stringBuilder.append(WATERPROOF_CLOTHING)
-            }
-
-            WeatherType.SlightSnowFall -> {
-                stringBuilder.append(SNOW_CLOTHING)
-            }
-
-            WeatherType.Foggy -> {
-                stringBuilder.append(HIGH_VISIBILITY_CLOTHING)
-            }
-
-            else -> {}
-        }
-
-        if (cityWeather.weatherType == WeatherType.ClearSkyNight ||
-            cityWeather.weatherType == WeatherType.PartlyCloudyNight
-        ) {
-            stringBuilder.append(NIGHT_VISIBILITY_CLOTHING)
-        }
-
-        return stringBuilder.toString()
-    }
-
-    private fun getCelsiusTemperature(kelvinTemperature: Double): Double {
-        return convertKelvinToCelsiusUseCase.kelvinToCelsius(kelvinTemperature)
-    }
 
     companion object {
         const val WEATHER_SUGGESTION_HEADER = "Weather-based clothing suggestion for %s:\n"
@@ -90,4 +24,5 @@ class GetClothesSuggestionUseCase(
         const val HIGH_VISIBILITY_CLOTHING = "- High-visibility clothing for safety\n"
         const val NIGHT_VISIBILITY_CLOTHING = "- Consider reflective or light-colored clothing for visibility\n"
     }
+
 }

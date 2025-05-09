@@ -2,6 +2,7 @@ package domain.model
 
 import domain.model.ExceptionsMessages.CLIENT_ERROR
 import domain.model.ExceptionsMessages.INVALID_API_KEY
+import domain.model.ExceptionsMessages.INVALID_CITY_NAME
 import domain.model.ExceptionsMessages.NETWORK_ERROR
 import domain.model.ExceptionsMessages.SERVER_ERROR
 import domain.model.ExceptionsMessages.WEATHER_NOT_FOUND
@@ -11,6 +12,8 @@ class NetworkException(message: String = NETWORK_ERROR) : Exception(message)
 class ClientErrorException(message: String = CLIENT_ERROR) : Exception(message)
 class InvalidApiKeyException(message: String = INVALID_API_KEY) : Exception(message)
 class ServerErrorException(message: String = SERVER_ERROR) : Exception(message)
+open class InvalidCityDataException(message: String) : Exception(message)
+class InvalidCityNameException(message: String = INVALID_CITY_NAME) : InvalidCityDataException(message)
 
 object ExceptionsMessages {
     const val WEATHER_NOT_FOUND =
@@ -19,4 +22,5 @@ object ExceptionsMessages {
     const val CLIENT_ERROR = "Client error"
     const val INVALID_API_KEY = "Invalid or unauthorized API key"
     const val SERVER_ERROR = "Server error"
+    const val INVALID_CITY_NAME = "City name is not valid"
 }
