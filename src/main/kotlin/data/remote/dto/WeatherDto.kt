@@ -1,6 +1,6 @@
 package data.remote.dto
 
-import domain.model.DayCityWeather
+import domain.model.CityWeather
 import domain.model.WeatherType.Companion.fromWMO
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -15,10 +15,10 @@ data class WeatherDto(
     val weatherList: List<Weather>
 )
 
-fun WeatherDto.toDayCityWeather(): DayCityWeather {
+fun WeatherDto.toDayCityWeather(): CityWeather {
     val weatherDescription = this.weatherList[0].description ?: "No description available"
     val weatherType = fromWMO(this.weatherList[0].icon ?: "")
-    return DayCityWeather(
+    return CityWeather(
         temp = this.main.temperature,
         weatherDescription = weatherDescription,
         weatherType = weatherType,

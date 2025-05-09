@@ -10,11 +10,11 @@ import kotlinx.serialization.json.Json
 
 class KtorWeatherApiImplementation(private val client: HttpClient) : WeatherApi {
     private val json = Json { ignoreUnknownKeys = true }
-    override suspend fun getCurrentWeather(city: String): Result<WeatherDto> {
+    override suspend fun getCurrentWeather(cityName: String): Result<WeatherDto> {
         val apiKey = System.getenv(API_KEY)
         return try {
             val response = client.get(URL) {
-                parameter(CITY_NAME_QUERY, city)
+                parameter(CITY_NAME_QUERY, cityName)
                 parameter(API_KEY_QUERY, apiKey)
             }
             when (response.status) {
@@ -22,7 +22,6 @@ class KtorWeatherApiImplementation(private val client: HttpClient) : WeatherApi 
                     val weatherDto = json.decodeFromString<WeatherDto>(response.bodyAsText())
                     Result.success(weatherDto)
                 }
-
                 HttpStatusCode.BadRequest -> Result.failure(NetworkException())
                 HttpStatusCode.Unauthorized -> Result.failure(InvalidApiKeyException())
                 HttpStatusCode.NotFound -> Result.failure(WeatherNotFondException())

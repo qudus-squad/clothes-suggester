@@ -2,24 +2,22 @@ package data.repository
 
 import data.remote.WeatherApi
 import data.remote.dto.toDayCityWeather
-import domain.model.DayCityWeather
-import domain.model.WeatherNotFondException
+import domain.model.CityWeather
 import domain.repository.WeatherRepository
 
 class WeatherRepositoryImplementation(
     private val weatherApi: WeatherApi
 ) : WeatherRepository {
-    override suspend fun getCurrentWeather(cityName: String): DayCityWeather {
+
+    override suspend fun getCurrentWeather(cityName: String): Result<CityWeather> {
         val result = weatherApi.getCurrentWeather(cityName)
-        var cityWeather: DayCityWeather? = null
-        result.fold(
+        return result.fold(
             onSuccess = {
-                cityWeather = it.toDayCityWeather()
+                Result.success(it.toDayCityWeather())
             },
             onFailure = {
-                throw it
+                Result.failure<CityWeather>(it)
             }
         )
-        return cityWeather ?: throw WeatherNotFondException()
     }
 }
